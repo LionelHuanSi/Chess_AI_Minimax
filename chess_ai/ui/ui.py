@@ -21,7 +21,7 @@ app.config['SECRET_KEY'] = 'chess_ai_local'
 # ── HTML Template (giữ nguyên style từ Colab Cell 4) ─────────────
 HTML_TEMPLATE = r"""
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Chess AI — Minimax</title>
@@ -129,6 +129,35 @@ h2 {
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
+
+/* Language switch */
+.header {
+    position: relative;
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.lang-switch {
+    position: absolute;
+    right: 0;
+    display: flex;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.lang-switch button {
+    border: none;
+    background: #fff;
+    color: #475569;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+.lang-switch button.active { background: #2980b9; color: #fff; }
 
 /* Nút */
 .btn-row { display: flex; gap: 8px; }
@@ -243,7 +272,13 @@ hr { border-color: rgba(15, 23, 42, 0.12); margin: 2px 0; }
 </style>
 </head>
 <body>
+<div class="header">
 <h2>♟️ Chess AI : Minimax Alpha-Beta Pruning</h2>
+<div class="lang-switch">
+    <button data-lang="en" onclick="setLang('en')">EN</button>
+    <button data-lang="vi" onclick="setLang('vi')">VI</button>
+</div>
+</div>
 
 <div class="main-layout">
 
@@ -254,8 +289,8 @@ hr { border-color: rgba(15, 23, 42, 0.12); margin: 2px 0; }
     </div>
 
     <div class="status-bar" id="status-bar">
-    <div class="captured" id="captured-text">Trắng ăn: — | Đen ăn: —</div>
-    <div class="status-text status-ok" id="status-text">🟢 Lượt của bạn!</div>
+    <div class="captured" id="captured-text"></div>
+    <div class="status-text status-ok" id="status-text"></div>
     </div>
 </div>
 
@@ -265,59 +300,59 @@ hr { border-color: rgba(15, 23, 42, 0.12); margin: 2px 0; }
     <!-- Nút điều khiển -->
     <div class="card">
     <div class="btn-row">
-        <button class="btn btn-new"  onclick="newGame()">Ván mới</button>
-        <button class="btn btn-undo" onclick="undoMove()">Đi lại</button>
+        <button class="btn btn-new"  onclick="newGame()" data-i18n="new_game"></button>
+        <button class="btn btn-undo" onclick="undoMove()" data-i18n="undo"></button>
     </div>
     </div>
 
     <!-- Màu quân -->
     <div class="card">
-    <h3>Màu quân</h3>
+    <h3 data-i18n="color_title"></h3>
     <div class="radio-group">
         <label class="radio-item">
         <input type="radio" name="color" value="white" checked onchange="setColor('white')">
         <div class="radio-dot"></div>
-        <span>Chơi Trắng ♙</span>
+        <span data-i18n="play_white"></span>
         </label>
         <label class="radio-item">
         <input type="radio" name="color" value="black" onchange="setColor('black')">
         <div class="radio-dot"></div>
-        <span>Chơi Đen ♟</span>
+        <span data-i18n="play_black"></span>
         </label>
     </div>
     </div>
 
     <!-- Độ khó -->
     <div class="card">
-    <h3>Độ khó (Depth)</h3>
+    <h3 data-i18n="difficulty_title"></h3>
     <div class="radio-group">
         <label class="radio-item">
         <input type="radio" name="depth" value="1" onchange="setDepth(1)">
         <div class="radio-dot"></div>
-        <span>Dễ (depth 1)</span>
+        <span data-i18n="depth_easy"></span>
         </label>
         <label class="radio-item">
         <input type="radio" name="depth" value="2" checked onchange="setDepth(2)">
         <div class="radio-dot"></div>
-        <span>TB (depth 2)</span>
+        <span data-i18n="depth_medium"></span>
         </label>
         <label class="radio-item">
         <input type="radio" name="depth" value="3" onchange="setDepth(3)">
         <div class="radio-dot"></div>
-        <span>Khó (depth 3)</span>
+        <span data-i18n="depth_hard"></span>
         </label>
     </div>
     </div>
 
     <!-- Lịch sử nước đi -->
     <div class="card">
-    <h3>Lịch sử nước đi</h3>
+    <h3 data-i18n="history_title"></h3>
     <div id="history-scroll">
-        <div class="empty-hint" id="history-empty">Chưa có nước đi...</div>
+        <div class="empty-hint" id="history-empty" data-i18n="history_empty"></div>
         <table class="history-table" id="history-table" style="display:none">
         <thead>
             <tr>
-            <th>#</th><th>Trắng</th><th>Đen</th>
+            <th>#</th><th data-i18n="white"></th><th data-i18n="black"></th>
             </tr>
         </thead>
         <tbody id="history-body"></tbody>
@@ -329,11 +364,9 @@ hr { border-color: rgba(15, 23, 42, 0.12); margin: 2px 0; }
     <div class="card">
     <h3>
         <span class="ai-spinner" id="ai-spinner"></span>
-        Thống kê AI
+        <span data-i18n="stats_title"></span>
     </h3>
-    <div id="stats-content">
-        <div class="empty-hint">Chờ AI tính toán...</div>
-    </div>
+    <div id="stats-content"></div>
     </div>
 
 </div><!-- end right-col -->
@@ -346,11 +379,93 @@ hr { border-color: rgba(15, 23, 42, 0.12); margin: 2px 0; }
 let selectedSquare = null;   // null = chưa chọn
 let legalTargets   = [];     // danh sách ô hợp lệ từ ô đang chọn
 let aiThinking     = false;
+let lastBoardData  = null;   // dữ liệu /board gần nhất (để render lại khi đổi ngôn ngữ)
+
+// ══════════════════════════════════════════════════════════════
+// I18N — từ điển EN / VI
+// ══════════════════════════════════════════════════════════════
+const I18N = {
+en: {
+    new_game: 'New game', undo: 'Undo',
+    color_title: 'Your side', play_white: 'Play White ♙', play_black: 'Play Black ♟',
+    difficulty_title: 'Difficulty (Depth)',
+    depth_easy: 'Easy (depth 1)', depth_medium: 'Medium (depth 2)', depth_hard: 'Hard (depth 3)',
+    history_title: 'Move history', history_empty: 'No moves yet...',
+    white: 'White', black: 'Black',
+    stats_title: 'AI stats', stats_waiting: 'Waiting for the AI...',
+    stat_depth: 'Search depth', stat_score: 'Evaluation', stat_nodes: 'Nodes searched',
+    stat_time: 'Time', stat_hint: 'cp = centipawns | + White better | − Black better',
+    captured: 'White captured: {w}   |   Black captured: {b}',
+    selected: '🎯 Selected {sq}. Click a target square, or click again to cancel',
+    selected_short: '🎯 Selected {sq}. Click a target square',
+    invalid_square: '❌ Invalid square! Pick a piece again.',
+    move_error: '❌ Illegal move!',
+    ai_thinking_minimax: '🤖 AI is thinking (Minimax)...',
+    ai_thinking: '🤖 AI is thinking...',
+    checkmate: '🏆 {winner} WINS! Checkmate!',
+    stalemate: '🤝 Draw! (Stalemate)',
+    insufficient: '🤝 Draw! (Insufficient material)',
+    repetition: '🤝 Draw! (Threefold repetition)',
+    check: '⚠️ Check! {side} to move',
+    your_turn: '🟢 Your turn. Click a piece!',
+},
+vi: {
+    new_game: 'Ván mới', undo: 'Đi lại',
+    color_title: 'Màu quân', play_white: 'Chơi Trắng ♙', play_black: 'Chơi Đen ♟',
+    difficulty_title: 'Độ khó (Depth)',
+    depth_easy: 'Dễ (depth 1)', depth_medium: 'TB (depth 2)', depth_hard: 'Khó (depth 3)',
+    history_title: 'Lịch sử nước đi', history_empty: 'Chưa có nước đi...',
+    white: 'Trắng', black: 'Đen',
+    stats_title: 'Thống kê AI', stats_waiting: 'Chờ AI tính toán...',
+    stat_depth: 'Độ sâu tìm kiếm', stat_score: 'Điểm đánh giá', stat_nodes: 'Nodes đã duyệt',
+    stat_time: 'Thời gian', stat_hint: 'cp=centipawns | +Trắng tốt | −Đen tốt',
+    captured: 'Trắng ăn: {w}   |   Đen ăn: {b}',
+    selected: '🎯 Đã chọn {sq} — Click ô đích hoặc click lại để bỏ chọn',
+    selected_short: '🎯 Đã chọn {sq} — Click ô đích',
+    invalid_square: '❌ Ô không hợp lệ! Click lại quân cờ.',
+    move_error: '❌ Nước đi lỗi!',
+    ai_thinking_minimax: '🤖 AI đang tính toán (Minimax)...',
+    ai_thinking: '🤖 AI đang tính toán...',
+    checkmate: '🏆 {winner} THẮNG! Chiếu hết!',
+    stalemate: '🤝 Hòa! (Stalemate)',
+    insufficient: '🤝 Hòa! (Thiếu quân)',
+    repetition: '🤝 Hòa! (Lặp 3 lần)',
+    check: '⚠️ Chiếu! Lượt {side}',
+    your_turn: '🟢 Lượt của bạn — Click quân cờ!',
+},
+};
+
+let lang = localStorage.getItem('chess_ai_lang') || 'en';
+if (!I18N[lang]) lang = 'en';
+
+function t(key, args = {}) {
+let s = (I18N[lang][key] ?? I18N.en[key] ?? key);
+for (const [k, v] of Object.entries(args)) s = s.replaceAll('{' + k + '}', v);
+return s;
+}
+
+function applyI18n() {
+document.documentElement.lang = lang;
+document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+});
+document.querySelectorAll('.lang-switch button').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+});
+if (lastBoardData) renderBoardData(lastBoardData);
+}
+
+function setLang(l) {
+lang = l;
+localStorage.setItem('chess_ai_lang', l);
+applyI18n();
+}
 
 // ══════════════════════════════════════════════════════════════
 // KHỞI ĐỘNG
 // ══════════════════════════════════════════════════════════════
 window.onload = () => {
+applyI18n();
 refreshBoard();
 };
 
@@ -376,11 +491,19 @@ if (selected      !== null) params.set('selected', selected);
 if (legalSqs.length)        params.set('legal', legalSqs.join(','));
 
 const data = await api('/board?' + params.toString());
+lastBoardData = data;
+renderBoardData(data);
+}
+
+function renderBoardData(data) {
 document.getElementById('board-container').innerHTML = data.svg;
-document.getElementById('captured-text').textContent = data.captured;
+document.getElementById('captured-text').textContent =
+    t('captured', { w: data.captured.white, b: data.captured.black });
 updateHistoryUI(data.history);
 updateStatsUI(data.stats);
-updateStatusUI(data.status, data.status_class);
+const args = {};
+for (const [k, v] of Object.entries(data.status_args || {})) args[k] = t(v);
+updateStatusUI(t(data.status_key, args), data.status_class);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -434,7 +557,7 @@ if (selectedSquare === null) {
     legalTargets   = data.legal_targets;
 
     setStatus(
-    `🎯 Đã chọn ${data.square_name} — Click ô đích hoặc click lại để bỏ chọn`,
+    t('selected', { sq: data.square_name }),
     'status-ai'
     );
     await refreshBoard(null, null, selectedSquare, legalTargets);
@@ -458,7 +581,7 @@ if (checkData.ok && checkData.own_piece) {
     selectedSquare = square;
     legalTargets   = checkData.legal_targets;
     setStatus(
-    `🎯 Đã chọn ${checkData.square_name} — Click ô đích`,
+    t('selected_short', { sq: checkData.square_name }),
     'status-ai'
     );
     await refreshBoard(null, null, selectedSquare, legalTargets);
@@ -469,7 +592,7 @@ if (checkData.ok && checkData.own_piece) {
 if (!legalTargets.includes(square)) {
     selectedSquare = null;
     legalTargets   = [];
-    setStatus('❌ Ô không hợp lệ! Click lại quân cờ.', 'status-err');
+    setStatus(t('invalid_square'), 'status-err');
     await refreshBoard();
     return;
 }
@@ -480,7 +603,7 @@ legalTargets   = [];
 
 const moveData = await api('/move', { from_sq, to_sq: square });
 if (!moveData.ok) {
-    setStatus('❌ Nước đi lỗi!', 'status-err');
+    setStatus(t('move_error'), 'status-err');
     await refreshBoard();
     return;
 }
@@ -492,7 +615,7 @@ if (moveData.game_over) return;
 // ── AI phản hồi ──
 aiThinking = true;
 document.getElementById('ai-spinner').style.display = 'inline-block';
-setStatus('🤖 AI đang tính toán (Minimax)...', 'status-ai');
+setStatus(t('ai_thinking_minimax'), 'status-ai');
 
 // Gọi AI qua fetch (server tính xong mới trả về)
 const aiData = await api('/ai_move', {});
@@ -517,7 +640,7 @@ const stateData = await api('/state');
 if (stateData.ai_should_move) {
     aiThinking = true;
     document.getElementById('ai-spinner').style.display = 'inline-block';
-    setStatus('🤖 AI đang tính toán...', 'status-ai');
+    setStatus(t('ai_thinking'), 'status-ai');
     await api('/ai_move', {});
     aiThinking = false;
     document.getElementById('ai-spinner').style.display = 'none';
@@ -542,7 +665,7 @@ await refreshBoard();
 if (data.ai_should_move) {
     aiThinking = true;
     document.getElementById('ai-spinner').style.display = 'inline-block';
-    setStatus('🤖 AI đang tính toán...', 'status-ai');
+    setStatus(t('ai_thinking'), 'status-ai');
     await api('/ai_move', {});
     aiThinking = false;
     document.getElementById('ai-spinner').style.display = 'none';
@@ -597,30 +720,30 @@ scroll.scrollTop = scroll.scrollHeight;
 function updateStatsUI(stats) {
 const el = document.getElementById('stats-content');
 if (!stats) {
-    el.innerHTML = '<div class="empty-hint">Chờ AI tính toán...</div>';
+    el.innerHTML = `<div class="empty-hint">${t('stats_waiting')}</div>`;
     return;
 }
 const scoreClass = stats.score > 0 ? 'stat-pos' : stats.score < 0 ? 'stat-neg' : 'stat-val';
 const scoreSign  = stats.score > 0 ? '+' : '';
 el.innerHTML = `
     <div class="stat-row">
-    <span class="stat-label">Độ sâu tìm kiếm</span>
+    <span class="stat-label">${t('stat_depth')}</span>
     <span class="stat-val">${stats.depth}</span>
     </div>
     <div class="stat-row">
-    <span class="stat-label">Điểm đánh giá</span>
+    <span class="stat-label">${t('stat_score')}</span>
     <span class="${scoreClass}">${scoreSign}${stats.score} cp</span>
     </div>
     <div class="stat-row">
-    <span class="stat-label">Nodes đã duyệt</span>
+    <span class="stat-label">${t('stat_nodes')}</span>
     <span class="stat-val">${stats.nodes.toLocaleString()}</span>
     </div>
     <div class="stat-row">
-    <span class="stat-label">Thời gian</span>
+    <span class="stat-label">${t('stat_time')}</span>
     <span class="stat-val">${stats.elapsed.toFixed(3)}s</span>
     </div>
     <div class="stat-row">
-    <span class="stat-label" style="font-size:10px">cp=centipawns | +Trắng tốt | −Đen tốt</span>
+    <span class="stat-label" style="font-size:10px">${t('stat_hint')}</span>
     </div>`;
 }
 </script>
@@ -657,24 +780,27 @@ class GameState:
         return (cw or '—'), (cb or '—')
 
     # ── Giữ nguyên logic _update_status từ ClickToMoveUI ──────────
+    # Trả về (status_key, status_args, css_class).
+    # Text hiển thị được dịch ở phía JS (I18N) theo ngôn ngữ người dùng chọn.
+    # Giá trị trong status_args cũng là key I18N ('white' / 'black').
     def get_status(self):
         if self.board.is_checkmate():
-            winner = 'Trắng' if self.board.turn == chess.BLACK else 'Đen'
-            return f'🏆 {winner} THẮNG! Chiếu hết!', 'status-err'
+            winner = 'white' if self.board.turn == chess.BLACK else 'black'
+            return 'checkmate', {'winner': winner}, 'status-err'
         elif self.board.is_stalemate():
-            return '🤝 Hòa! (Stalemate)', 'status-warn'
+            return 'stalemate', {}, 'status-warn'
         elif self.board.is_insufficient_material():
-            return '🤝 Hòa! (Thiếu quân)', 'status-warn'
+            return 'insufficient', {}, 'status-warn'
         elif self.board.is_repetition(3):
-            return '🤝 Hòa! (Lặp 3 lần)', 'status-warn'
+            return 'repetition', {}, 'status-warn'
         elif self.board.is_check():
-            side = 'Trắng' if self.board.turn == chess.WHITE else 'Đen'
-            return f'⚠️ Chiếu! Lượt {side}', 'status-err'
+            side = 'white' if self.board.turn == chess.WHITE else 'black'
+            return 'check', {'side': side}, 'status-err'
         else:
             if self.board.turn == self.player_color:
-                return '🟢 Lượt của bạn — Click quân cờ!', 'status-ok'
+                return 'your_turn', {}, 'status-ok'
             else:
-                return '🤖 AI đang suy nghĩ...', 'status-ai'
+                return 'ai_thinking', {}, 'status-ai'
 
     def get_stats_dict(self):
         if self.last_ai_stats is None:
@@ -754,13 +880,14 @@ def make_board_svg(selected=None, legal_targets=None):
 def board_response(selected=None, legal_targets=None):
     """Trả về JSON gồm SVG + trạng thái để JS render."""
     cw, cb = gs.get_captured()
-    status_msg, status_cls = gs.get_status()
+    status_key, status_args, status_cls = gs.get_status()
     return jsonify({
         'svg':      make_board_svg(selected, legal_targets),
-        'captured': f'Trắng ăn: {cw}   |   Đen ăn: {cb}',
+        'captured': {'white': cw, 'black': cb},
         'history':  gs.move_history,
         'stats':    gs.get_stats_dict(),
-        'status':   status_msg,
+        'status_key':  status_key,
+        'status_args': status_args,
         'status_class': status_cls,
         'game_over': gs.game_over,
     })
@@ -911,7 +1038,7 @@ class ClickToMoveUI:
     def run(self):
         port = 5678
         url  = f'http://127.0.0.1:{port}'
-        print(f'Mở browser tại: {url}')
+        print(f'Open in your browser: {url}')
 
         # Mở browser sau 1 giây (đợi Flask khởi động)
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()

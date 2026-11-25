@@ -12,6 +12,7 @@ Play chess in your browser against an AI that thinks ahead using the classic **M
 - **Undo** and **New game**
 - **Move history** in standard notation
 - **Live AI stats**: search depth, position score, nodes searched, and thinking time
+- **English / Vietnamese** interface (EN | VI toggle)
 
 ## Quick Start
 
