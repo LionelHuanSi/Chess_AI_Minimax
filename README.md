@@ -2,7 +2,7 @@
 
 Play chess in your browser against an AI that thinks ahead using the classic **Minimax** search, sped up with **Alpha-Beta pruning**.
 
-![Gameplay](docs/images/gameplay.png)
+![Gameplay](docs/images/gameplay-en.png)
 
 ## Features
 
